@@ -34,12 +34,13 @@ jobs:
           python scraper.py
 
       - name: Commit XML Feed
-        run: |
-          git config --local user.email "github-actions@github.com"
-          git config --local user.name "github-actions[bot]"
+  run: |
+    git config --local user.email "github-actions@github.com"
+    git config --local user.name "github-actions[bot]"
 
-          git add pogo_news_feed.xml
+    git add pogo_news_feed.xml
 
-          git diff --staged --quiet || git commit -m "Auto update RSS feed"
+    git diff --staged --quiet || git commit -m "Auto update RSS feed"
 
-          git push
+    git pull --rebase origin main
+    git push origin main
