@@ -17,7 +17,8 @@ HEADERS = {
 items = []
 
 
-def add_item(title, link, source, date=None):
+def add_item(title, link, source, date=None, description=""):
+
     if not title or not link:
         return
 
@@ -29,7 +30,8 @@ def add_item(title, link, source, date=None):
     items.append({
         "title": f"[{source}] {title}",
         "link": link,
-        "date": date
+        "date": date,
+        "description": description
     })
 
 
@@ -81,10 +83,16 @@ def pokemon_go_news():
 
             seen.add(link)
 
+            description = (
+                f"Artículo oficial de Pokémon GO: {title}"
+            )
+
             add_item(
                 title,
                 link,
-                "Official"
+                "Official",
+                None,
+                description
             )
 
     except Exception as e:
@@ -116,6 +124,7 @@ def gohub_news():
             title = item.findtext("title")
             link = item.findtext("link")
             pub_date = item.findtext("pubDate")
+            description = item.findtext("description") or ""
 
             if not title or not link:
                 continue
@@ -129,7 +138,8 @@ def gohub_news():
                 title,
                 link,
                 "GO Hub",
-                published
+                published,
+                description[:1200]
             )
 
     except Exception as e:
@@ -225,10 +235,14 @@ def leekduck_events():
             for rep in replacements:
                 title = title.replace(rep, "")
 
+            description = title
+
             add_item(
                 title,
                 link,
-                source
+                source,
+                None,
+                description
             )
 
     except Exception as e:
@@ -244,7 +258,9 @@ def raid_bosses():
     add_item(
         "Current Raid Bosses",
         "https://leekduck.com/raid-bosses/",
-        "LeekDuck Raid Bosses"
+        "LeekDuck Raid Bosses",
+        None,
+        "Lista actual de jefes de incursión."
     )
 
 
@@ -257,7 +273,9 @@ def research_tasks():
     add_item(
         "Current Research Tasks",
         "https://leekduck.com/research/",
-        "LeekDuck Research"
+        "LeekDuck Research",
+        None,
+        "Lista actual de investigaciones de campo."
     )
 
 
@@ -271,8 +289,6 @@ leekduck_events()
 raid_bosses()
 research_tasks()
 
-# eliminar duplicados
-
 unique = {}
 
 for item in items:
@@ -280,18 +296,12 @@ for item in items:
 
 items = list(unique.values())
 
-# ordenar por fecha real
-
 items.sort(
     key=lambda x: x["date"],
     reverse=True
 )
 
-# limitar
-
 items = items[:150]
-
-# RSS
 
 fg = FeedGenerator()
 
@@ -314,6 +324,12 @@ for item in items:
     fe.guid(item["link"])
     fe.pubDate(item["date"])
 
+    fe.description(
+        item["description"]
+    )
+
 fg.rss_file("pogo_news_feed.xml")
 
-print(f"Feed generado con {len(items)} entradas")
+print(
+    f"Feed generado con {len(items)} entradas"
+)
