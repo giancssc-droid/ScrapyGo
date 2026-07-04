@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
 from feedgen.feed import FeedGenerator
 from bs4 import BeautifulSoup
-import requests
 from urllib.parse import urljoin
+import requests
+import xml.etree.ElementTree as ET
 
 HEADERS = {
     "User-Agent": (
@@ -19,83 +20,91 @@ def add_item(title, link, source):
     if not title or not link:
         return
 
+    title = " ".join(title.split())
+
     items.append({
-        "title": f"[{source}] {title.strip()}",
-        "link": link.strip(),
+        "title": f"[{source}] {title}",
+        "link": link,
         "date": datetime.now(timezone.utc)
     })
 
 
-# --------------------------------------------------
-# Pokemon GO Official News
-# --------------------------------------------------
+# =====================================================
+# OFFICIAL POKEMON GO
+# =====================================================
 
 def pokemon_go_news():
+
     try:
+
         url = "https://pokemongo.com/es/news"
 
         r = requests.get(url, headers=HEADERS, timeout=30)
 
         soup = BeautifulSoup(r.text, "html.parser")
 
-        links = soup.find_all("a", href=True)
-
         seen = set()
 
-        for a in links:
+        for a in soup.find_all("a", href=True):
 
-            href = a.get("href")
+            href = a["href"]
 
-            if "/post/" not in href and "/news/" not in href:
+            if "/news/" not in href:
                 continue
-
-            full_url = urljoin(url, href)
 
             title = a.get_text(" ", strip=True)
 
-            if len(title) < 5:
+            if len(title) < 10:
                 continue
 
-            if full_url in seen:
+            link = urljoin(url, href)
+
+            if link in seen:
                 continue
 
-            seen.add(full_url)
+            seen.add(link)
 
-            add_item(title, full_url, "Official")
+            add_item(
+                title,
+                link,
+                "Official"
+            )
 
     except Exception as e:
-        print("Pokemon GO:", e)
+        print("Official:", e)
 
 
-# --------------------------------------------------
-# Pokemon GO Hub
-# --------------------------------------------------
+# =====================================================
+# GO HUB RSS
+# =====================================================
 
-def pogo_hub_news():
+def gohub_news():
+
     try:
-        url = "https://pokemongohub.net/post/category/news/"
 
-        r = requests.get(url, headers=HEADERS, timeout=30)
+        feed_url = (
+            "https://pokemongohub.net/post/category/news/feed/"
+        )
 
-        soup = BeautifulSoup(r.text, "html.parser")
+        r = requests.get(
+            feed_url,
+            headers=HEADERS,
+            timeout=30
+        )
 
-        articles = soup.find_all("article")
+        root = ET.fromstring(r.content)
 
-        for article in articles:
+        for item in root.findall(".//item"):
 
-            a = article.find("a", href=True)
+            title = item.findtext("title")
+            link = item.findtext("link")
 
-            if not a:
-                continue
-
-            title = a.get_text(" ", strip=True)
-
-            if len(title) < 5:
+            if not title or not link:
                 continue
 
             add_item(
                 title,
-                a["href"],
+                link,
                 "GO Hub"
             )
 
@@ -103,78 +112,144 @@ def pogo_hub_news():
         print("GO Hub:", e)
 
 
-# --------------------------------------------------
-# LeekDuck Events
-# --------------------------------------------------
+# =====================================================
+# LEEKDUCK EVENTS
+# =====================================================
 
 def leekduck_events():
+
     try:
+
         url = "https://leekduck.com/events/"
 
-        r = requests.get(url, headers=HEADERS, timeout=30)
+        r = requests.get(
+            url,
+            headers=HEADERS,
+            timeout=30
+        )
 
-        soup = BeautifulSoup(r.text, "html.parser")
-
-        links = soup.find_all("a", href=True)
+        soup = BeautifulSoup(
+            r.text,
+            "html.parser"
+        )
 
         seen = set()
 
-        for a in links:
+        for a in soup.find_all("a", href=True):
 
-            href = a["href"]
+            href = a.get("href", "")
 
             if "/events/" not in href:
                 continue
 
-            title = a.get_text(" ", strip=True)
+            link = urljoin(url, href)
 
-            if len(title) < 3:
+            if link in seen:
                 continue
 
-            full_url = urljoin(url, href)
+            seen.add(link)
 
-            if full_url in seen:
+            title = a.get_text(
+                " ",
+                strip=True
+            )
+
+            title = " ".join(title.split())
+
+            if len(title) < 5:
                 continue
 
-            seen.add(full_url)
+            if title.lower() == "events":
+                continue
 
-            add_item(title, full_url, "Events")
+            if "example event template" in title.lower():
+                continue
+
+            source = "LeekDuck Event"
+
+            if "raid hour" in title.lower():
+                source = "LeekDuck Raid Hour"
+
+            elif "spotlight hour" in title.lower():
+                source = "LeekDuck Spotlight"
+
+            elif "mega raids" in title.lower():
+                source = "LeekDuck Raid"
+
+            elif "5-star raid" in title.lower():
+                source = "LeekDuck Raid"
+
+            elif "raid day" in title.lower():
+                source = "LeekDuck Raid"
+
+            elif "community day" in title.lower():
+                source = "LeekDuck Community Day"
+
+            # limpiar duplicados típicos
+
+            replacements = [
+                "Raid Battles Raid Battles ",
+                "Raid Hour Raid Hour ",
+                "Pokémon Spotlight Hour Pokémon Spotlight Hour ",
+                "Community Day Community Day ",
+                "Event Event ",
+                "GO Pass GO Pass ",
+                "GO Battle League GO Battle League ",
+                "Max Mondays Max Mondays ",
+                "Choose Your Path Choose Your Path ",
+                "Pokémon GO Fest Pokémon GO Fest "
+            ]
+
+            for rep in replacements:
+                title = title.replace(rep, "")
+
+            add_item(
+                title,
+                link,
+                source
+            )
 
     except Exception as e:
-        print("LeekDuck Events:", e)
+        print("LeekDuck:", e)
 
 
-# --------------------------------------------------
-# LeekDuck Raid Bosses
-# --------------------------------------------------
+# =====================================================
+# RAID BOSSES
+# =====================================================
 
-def leekduck_raids():
+def raid_bosses():
+
     add_item(
         "Current Raid Bosses",
         "https://leekduck.com/raid-bosses/",
-        "Raids"
+        "LeekDuck Raid Bosses"
     )
 
 
-# --------------------------------------------------
-# LeekDuck Research
-# --------------------------------------------------
+# =====================================================
+# RESEARCH
+# =====================================================
 
-def leekduck_research():
+def research_tasks():
+
     add_item(
         "Current Research Tasks",
         "https://leekduck.com/research/",
-        "Research"
+        "LeekDuck Research"
     )
 
 
-pokemon_go_news()
-pogo_hub_news()
-leekduck_events()
-leekduck_raids()
-leekduck_research()
+# =====================================================
+# RUN
+# =====================================================
 
-# Eliminar duplicados
+pokemon_go_news()
+gohub_news()
+leekduck_events()
+raid_bosses()
+research_tasks()
+
+# eliminar duplicados
 
 unique = {}
 
@@ -183,24 +258,24 @@ for item in items:
 
 items = list(unique.values())
 
-# Ordenar
+# ordenar
 
 items.sort(
     key=lambda x: x["date"],
     reverse=True
 )
 
-# Limitar
+# limitar
 
-items = items[:100]
+items = items[:150]
 
 # RSS
 
 fg = FeedGenerator()
 
-fg.title("Pokemon GO Unified Feed")
+fg.title("Pokemon GO News & Events")
 fg.description(
-    "Pokemon GO + GO Hub + LeekDuck"
+    "Official Pokemon GO + GO Hub + LeekDuck"
 )
 
 fg.link(
@@ -216,6 +291,10 @@ for item in items:
     fe.guid(item["link"])
     fe.pubDate(item["date"])
 
-fg.rss_file("pogo_news_feed.xml")
+fg.rss_file(
+    "pogo_news_feed.xml"
+)
 
-print(f"Feed generado con {len(items)} entradas")
+print(
+    f"Feed generado con {len(items)} entradas"
+)
