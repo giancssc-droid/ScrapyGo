@@ -1,71 +1,112 @@
 # ScrapyGo
 
-Unified Pokémon GO RSS feed powered by GitHub Actions.
+Feed RSS unificado de Pokémon GO impulsado por GitHub Actions.
 
-## Overview
+## Descripción
 
-ScrapyGo collects Pokémon GO information from multiple public sources and generates a single RSS feed that can be consumed by RSS readers, automation tools, AI assistants, and news aggregators.
+ScrapyGo es un proyecto personal diseñado para recopilar información de múltiples fuentes confiables de Pokémon GO y consolidarla en un único feed RSS.
 
-The goal is to have one clean source for Pokémon GO news, events, raids, research, and official announcements.
+El objetivo es reducir el tiempo invertido revisando diferentes sitios web y disponer de una sola fuente para noticias, eventos, incursiones, investigaciones, GO Pass y anuncios oficiales.
 
-## Sources
+## Objetivos
 
-- Pokémon GO Live (Official)
-- Pokémon GO Hub
-- LeekDuck
+* Centralizar las noticias de Pokémon GO en un solo lugar.
+* Seguir eventos activos y futuros.
+* Mantener información actualizada sobre incursiones.
+* Facilitar la creación de resúmenes diarios con IA.
+* Reducir el ruido y la duplicación de información.
 
-## Features
+## Fuentes
 
-- Automatic updates via GitHub Actions
-- Unified RSS feed
-- Event tracking
-- Raid tracking
-- Research tracking
-- Official Pokémon GO announcements
-- Compatible with:
-  - Inoreader
-  - Enzo Reader
-  - RSS readers
-  - AI workflows
+### Oficiales
 
-## Public Feed
+* Pokémon GO Live
+
+### Comunidad
+
+* Pokémon GO Hub
+* LeekDuck
+
+Las fuentes podrán ampliarse en futuras versiones según su calidad y fiabilidad.
+
+## Características
+
+* Generación automática del feed RSS.
+* Consolidación de múltiples fuentes.
+* Seguimiento de eventos.
+* Seguimiento de incursiones.
+* Seguimiento de investigaciones.
+* Cobertura de GO Pass.
+* Cobertura de anuncios oficiales.
+
+Compatible con:
+
+* Enzo Reader
+* Inoreader
+* Lectores RSS
+* Flujos de trabajo con IA
+* Automatizaciones personales
+
+## Feed Público
 
 RSS Feed:
 
 https://giancssc-droid.github.io/ScrapyGo/pogo_news_feed.xml
 
-## Generated Content
+## Contenido Generado
 
-The feed may include:
+El feed puede incluir:
 
-- Official news
-- Event announcements
-- GO Pass information
-- Raid schedules
-- Mega Raid schedules
-- Community Days
-- Research updates
-- Current Raid Bosses
+* Noticias oficiales.
+* Anuncios de eventos.
+* Información de GO Pass.
+* Calendarios de incursiones.
+* Calendarios de Mega Incursiones.
+* Días de la Comunidad.
+* Investigaciones temporales.
+* Jefes de incursión actuales.
+* Bonificaciones especiales.
+* Eventos de temporada.
 
-## Automation
+## Automatización
 
-GitHub Actions automatically rebuilds the feed on schedule.
+GitHub Actions reconstruye y publica automáticamente el feed de manera periódica.
 
-## Tech Stack
+## Tecnologías Utilizadas
 
-- Python
-- FeedGen
-- BeautifulSoup
-- Requests
-- GitHub Actions
-- GitHub Pages
+* Python
+* Requests
+* BeautifulSoup
+* FeedGen
+* GitHub Actions
+* GitHub Pages
 
-## Purpose
+## Hoja de Ruta
 
-Personal Pokémon GO intelligence feed designed to reduce the need to check multiple websites manually.
+### Versión 1
 
-## Status
+* Feed RSS unificado.
+* Publicación mediante GitHub Pages.
+* Actualizaciones automáticas.
 
-Active project.
+### Versión 2
 
-Maintained for personal use.
+* Más fuentes de información.
+* Mejor categorización de contenido.
+* Mejor manejo de metadatos.
+
+### Versión 3
+
+* Resúmenes diarios generados con IA.
+* Archivo histórico de eventos.
+* Seguimiento cronológico de contenido.
+
+## Propósito
+
+ScrapyGo funciona como una plataforma personal de inteligencia para Pokémon GO, orientada a la planificación diaria, seguimiento de eventos y recopilación eficiente de información.
+
+## Estado del Proyecto
+
+🟢 Activo
+
+Proyecto mantenido para uso personal.
