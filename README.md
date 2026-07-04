@@ -1,6 +1,6 @@
 # ScrapyGo
 
-Feed RSS unificado de Pokémon GO impulsado por GitHub Actions.
+Proyecto personal de agregación y análisis de información de Pokémon GO mediante RSS y automatización.
 
 ## Descripción
 
@@ -80,6 +80,13 @@ GitHub Actions reconstruye y publica automáticamente el feed de manera periódi
 * FeedGen
 * GitHub Actions
 * GitHub Pages
+
+## Casos de Uso
+
+- Lectura diaria de noticias
+- Generación de resúmenes con IA
+- Seguimiento de eventos
+- Seguimiento de incursiones
 
 ## Hoja de Ruta
 
