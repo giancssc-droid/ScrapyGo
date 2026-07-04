@@ -63,3 +63,9 @@ GitHub Actions automatically rebuilds the feed on schedule.
 ## Purpose
 
 Personal Pokémon GO intelligence feed designed to reduce the need to check multiple websites manually.
+
+## Status
+
+Active project.
+
+Maintained for personal use.
