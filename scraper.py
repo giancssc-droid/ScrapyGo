@@ -84,5 +84,6 @@ for item in items:
     fe.pubDate(item["published"])
 
 fg.rss_file("pogo_news_feed.xml")
+print("XML creado correctamente")
 
 print(f"Feed generado con {len(items)} artículos.")
