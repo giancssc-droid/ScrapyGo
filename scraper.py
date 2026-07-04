@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from feedgen.feed import FeedGenerator
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
@@ -16,16 +17,19 @@ HEADERS = {
 items = []
 
 
-def add_item(title, link, source):
+def add_item(title, link, source, date=None):
     if not title or not link:
         return
+
+    if date is None:
+        date = datetime.now(timezone.utc)
 
     title = " ".join(title.split())
 
     items.append({
         "title": f"[{source}] {title}",
         "link": link,
-        "date": datetime.now(timezone.utc)
+        "date": date
     })
 
 
@@ -39,30 +43,41 @@ def pokemon_go_news():
 
         url = "https://pokemongo.com/es/news"
 
-        r = requests.get(url, headers=HEADERS, timeout=30)
+        r = requests.get(
+            url,
+            headers=HEADERS,
+            timeout=30
+        )
 
-        soup = BeautifulSoup(r.text, "html.parser")
+        soup = BeautifulSoup(
+            r.text,
+            "html.parser"
+        )
 
         seen = set()
 
         for a in soup.find_all("a", href=True):
 
-            href = a["href"]
+            href = a.get("href", "")
 
             if "/news/" not in href:
-    continue
+                continue
 
-if href.endswith("/news"):
-    continue
-
-            title = a.get_text(" ", strip=True)
-
-            if len(title) < 10:
+            if href.endswith("/news"):
                 continue
 
             link = urljoin(url, href)
 
-            if len(title) < 3:
+            if link in seen:
+                continue
+
+            title = a.get_text(
+                " ",
+                strip=True
+            )
+
+            if len(title) < 5:
+                continue
 
             seen.add(link)
 
@@ -100,23 +115,22 @@ def gohub_news():
 
             title = item.findtext("title")
             link = item.findtext("link")
+            pub_date = item.findtext("pubDate")
 
             if not title or not link:
                 continue
 
-            pub_date = item.findtext("pubDate")
+            try:
+                published = parsedate_to_datetime(pub_date)
+            except:
+                published = datetime.now(timezone.utc)
 
-try:
-    from email.utils import parsedate_to_datetime
-    published = parsedate_to_datetime(pub_date)
-except:
-    published = datetime.now(timezone.utc)
-
-items.append({
-    "title": f"[GO Hub] {title}",
-    "link": link,
-    "date": published
-})
+            add_item(
+                title,
+                link,
+                "GO Hub",
+                published
+            )
 
     except Exception as e:
         print("GO Hub:", e)
@@ -177,25 +191,23 @@ def leekduck_events():
 
             source = "LeekDuck Event"
 
-            if "raid hour" in title.lower():
+            lower = title.lower()
+
+            if "raid hour" in lower:
                 source = "LeekDuck Raid Hour"
 
-            elif "spotlight hour" in title.lower():
+            elif "spotlight hour" in lower:
                 source = "LeekDuck Spotlight"
 
-            elif "mega raids" in title.lower():
-                source = "LeekDuck Raid"
-
-            elif "5-star raid" in title.lower():
-                source = "LeekDuck Raid"
-
-            elif "raid day" in title.lower():
-                source = "LeekDuck Raid"
-
-            elif "community day" in title.lower():
+            elif "community day" in lower:
                 source = "LeekDuck Community Day"
 
-            # limpiar duplicados típicos
+            elif (
+                "mega raids" in lower
+                or "5-star raid" in lower
+                or "raid day" in lower
+            ):
+                source = "LeekDuck Raid"
 
             replacements = [
                 "Raid Battles Raid Battles ",
@@ -268,7 +280,7 @@ for item in items:
 
 items = list(unique.values())
 
-# ordenar
+# ordenar por fecha real
 
 items.sort(
     key=lambda x: x["date"],
@@ -284,6 +296,7 @@ items = items[:150]
 fg = FeedGenerator()
 
 fg.title("Pokemon GO News & Events")
+
 fg.description(
     "Official Pokemon GO + GO Hub + LeekDuck"
 )
@@ -307,4 +320,5 @@ fg.rss_file(
 
 print(
     f"Feed generado con {len(items)} entradas"
+)
 )
