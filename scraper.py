@@ -314,11 +314,6 @@ for item in items:
     fe.guid(item["link"])
     fe.pubDate(item["date"])
 
-fg.rss_file(
-    "pogo_news_feed.xml"
-)
+fg.rss_file("pogo_news_feed.xml")
 
-print(
-    f"Feed generado con {len(items)} entradas"
-)
-)
+print(f"Feed generado con {len(items)} entradas")
