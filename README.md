@@ -1,4 +1,4 @@
-# ScrapyGo
+# ScrapyGo 
 
 Proyecto personal de agregación y análisis de información de Pokémon GO mediante RSS y automatización.
 
