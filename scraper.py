@@ -50,7 +50,10 @@ def pokemon_go_news():
             href = a["href"]
 
             if "/news/" not in href:
-                continue
+    continue
+
+if href.endswith("/news"):
+    continue
 
             title = a.get_text(" ", strip=True)
 
@@ -59,8 +62,7 @@ def pokemon_go_news():
 
             link = urljoin(url, href)
 
-            if link in seen:
-                continue
+            if len(title) < 3:
 
             seen.add(link)
 
@@ -102,11 +104,19 @@ def gohub_news():
             if not title or not link:
                 continue
 
-            add_item(
-                title,
-                link,
-                "GO Hub"
-            )
+            pub_date = item.findtext("pubDate")
+
+try:
+    from email.utils import parsedate_to_datetime
+    published = parsedate_to_datetime(pub_date)
+except:
+    published = datetime.now(timezone.utc)
+
+items.append({
+    "title": f"[GO Hub] {title}",
+    "link": link,
+    "date": published
+})
 
     except Exception as e:
         print("GO Hub:", e)
