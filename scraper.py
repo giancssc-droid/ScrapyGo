@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import requests
 import xml.etree.ElementTree as ET
+import feedparser
 
 HEADERS = {
     "User-Agent": (
@@ -91,7 +92,7 @@ def pokemon_go_news():
                 title,
                 link,
                 "Official",
-                None,
+                datetime.now(timezone.utc),
                 description
             )
 
@@ -100,7 +101,54 @@ def pokemon_go_news():
 
 
 # =====================================================
-# GO HUB RSS
+# GO HUB EVENTS
+# =====================================================
+
+def gohub_events():
+
+    try:
+
+        feed_url = (
+            "https://pokemongohub.net/post/category/event/feed/"
+        )
+
+        r = requests.get(
+            feed_url,
+            headers=HEADERS,
+            timeout=30
+        )
+
+        root = ET.fromstring(r.content)
+
+        for item in root.findall(".//item"):
+
+            title = item.findtext("title")
+            link = item.findtext("link")
+            pub_date = item.findtext("pubDate")
+            description = item.findtext("description") or ""
+
+            if not title or not link:
+                continue
+
+            try:
+                published = parsedate_to_datetime(pub_date)
+            except:
+                published = datetime.now(timezone.utc)
+
+            add_item(
+                title,
+                link,
+                "GO Hub Events",
+                published,
+                description[:1200]
+            )
+
+    except Exception as e:
+        print("GO Hub Events:", e)
+
+
+# =====================================================
+# GO HUB NEWS
 # =====================================================
 
 def gohub_news():
@@ -137,13 +185,13 @@ def gohub_news():
             add_item(
                 title,
                 link,
-                "GO Hub",
+                "GO Hub News",
                 published,
                 description[:1200]
             )
 
     except Exception as e:
-        print("GO Hub:", e)
+        print("GO Hub News:", e)
 
 
 # =====================================================
@@ -235,14 +283,12 @@ def leekduck_events():
             for rep in replacements:
                 title = title.replace(rep, "")
 
-            description = title
-
             add_item(
                 title,
                 link,
                 source,
-                None,
-                description
+                datetime.now(timezone.utc),
+                title
             )
 
     except Exception as e:
@@ -250,33 +296,42 @@ def leekduck_events():
 
 
 # =====================================================
-# RAID BOSSES
+# LEEKDUCK TWITTER / TELEGRAM
 # =====================================================
 
-def raid_bosses():
+def leekduck_twitter():
 
-    add_item(
-        "Current Raid Bosses",
-        "https://leekduck.com/raid-bosses/",
-        "LeekDuck Raid Bosses",
-        None,
-        "Lista actual de jefes de incursión."
-    )
+    try:
 
+        feed = feedparser.parse(
+            "https://rss-bridge.org/bridge01/?action=display&username=LeekDuckTwitter&bridge=TelegramBridge&format=Atom"
+        )
 
-# =====================================================
-# RESEARCH
-# =====================================================
+        for entry in feed.entries[:25]:
 
-def research_tasks():
+            title = getattr(entry, "title", "")
+            link = getattr(entry, "link", "")
 
-    add_item(
-        "Current Research Tasks",
-        "https://leekduck.com/research/",
-        "LeekDuck Research",
-        None,
-        "Lista actual de investigaciones de campo."
-    )
+            if not title or not link:
+                continue
+
+            try:
+                published = parsedate_to_datetime(
+                    entry.published
+                )
+            except:
+                published = datetime.now(timezone.utc)
+
+            add_item(
+                title,
+                link,
+                "LeekDuckTwitter",
+                published,
+                title
+            )
+
+    except Exception as e:
+        print("LeekDuckTwitter:", e)
 
 
 # =====================================================
@@ -284,10 +339,14 @@ def research_tasks():
 # =====================================================
 
 pokemon_go_news()
+gohub_events()
 gohub_news()
 leekduck_events()
-raid_bosses()
-research_tasks()
+leekduck_twitter()
+
+# =====================================================
+# REMOVE DUPLICATES
+# =====================================================
 
 unique = {}
 
@@ -296,12 +355,20 @@ for item in items:
 
 items = list(unique.values())
 
+# =====================================================
+# SORT
+# =====================================================
+
 items.sort(
     key=lambda x: x["date"],
     reverse=True
 )
 
-items = items[:150]
+items = items[:50]
+
+# =====================================================
+# GENERATE FEED
+# =====================================================
 
 fg = FeedGenerator()
 
@@ -323,10 +390,7 @@ for item in items:
     fe.link(href=item["link"])
     fe.guid(item["link"])
     fe.pubDate(item["date"])
-
-    fe.description(
-        item["description"]
-    )
+    fe.description(item["description"])
 
 fg.rss_file("pogo_news_feed.xml")
 
