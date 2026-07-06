@@ -341,7 +341,6 @@ def leekduck_twitter():
 pokemon_go_news()
 gohub_events()
 gohub_news()
-leekduck_events()
 leekduck_twitter()
 
 # =====================================================
