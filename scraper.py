@@ -60,7 +60,7 @@ def pokemon_go_news():
         seen = set()
         max_articles = 10
 
-            for a in soup.find_all("a", href=True):
+        for a in soup.find_all("a", href=True):
 
             href = a.get("href", "")
 
@@ -89,7 +89,7 @@ def pokemon_go_news():
                 break
 
             description = (
-            f"Artículo oficial de Pokémon GO: {title}"
+                f"Artículo oficial de Pokémon GO: {title}"
             )
 
             add_item(
