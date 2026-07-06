@@ -195,107 +195,6 @@ def gohub_news():
 
 
 # =====================================================
-# LEEKDUCK EVENTS
-# =====================================================
-
-def leekduck_events():
-
-    try:
-
-        url = "https://leekduck.com/events/"
-
-        r = requests.get(
-            url,
-            headers=HEADERS,
-            timeout=30
-        )
-
-        soup = BeautifulSoup(
-            r.text,
-            "html.parser"
-        )
-
-        seen = set()
-
-        for a in soup.find_all("a", href=True):
-
-            href = a.get("href", "")
-
-            if "/events/" not in href:
-                continue
-
-            link = urljoin(url, href)
-
-            if link in seen:
-                continue
-
-            seen.add(link)
-
-            title = a.get_text(
-                " ",
-                strip=True
-            )
-
-            title = " ".join(title.split())
-
-            if len(title) < 5:
-                continue
-
-            if title.lower() == "events":
-                continue
-
-            if "example event template" in title.lower():
-                continue
-
-            source = "LeekDuck Event"
-
-            lower = title.lower()
-
-            if "raid hour" in lower:
-                source = "LeekDuck Raid Hour"
-
-            elif "spotlight hour" in lower:
-                source = "LeekDuck Spotlight"
-
-            elif "community day" in lower:
-                source = "LeekDuck Community Day"
-
-            elif (
-                "mega raids" in lower
-                or "5-star raid" in lower
-                or "raid day" in lower
-            ):
-                source = "LeekDuck Raid"
-
-            replacements = [
-                "Raid Battles Raid Battles ",
-                "Raid Hour Raid Hour ",
-                "Pokémon Spotlight Hour Pokémon Spotlight Hour ",
-                "Community Day Community Day ",
-                "Event Event ",
-                "GO Pass GO Pass ",
-                "GO Battle League GO Battle League ",
-                "Max Mondays Max Mondays ",
-                "Choose Your Path Choose Your Path ",
-                "Pokémon GO Fest Pokémon GO Fest "
-            ]
-
-            for rep in replacements:
-                title = title.replace(rep, "")
-
-            add_item(
-                title,
-                link,
-                source,
-                datetime.now(timezone.utc),
-                title
-            )
-
-    except Exception as e:
-        print("LeekDuck:", e)
-
-
-# =====================================================
 # LEEKDUCK TWITTER / TELEGRAM
 # =====================================================
 
@@ -307,7 +206,7 @@ def leekduck_twitter():
             "https://rss-bridge.org/bridge01/?action=display&username=LeekDuckTwitter&bridge=TelegramBridge&format=Atom"
         )
 
-        for entry in feed.entries[:25]:
+        for entry in feed.entries[:10]:
 
             title = getattr(entry, "title", "")
             link = getattr(entry, "link", "")
@@ -335,6 +234,43 @@ def leekduck_twitter():
 
 
 # =====================================================
+# CURRENT GAME DATA
+# =====================================================
+
+def raid_bosses():
+
+    add_item(
+        "Current Raid Bosses",
+        "https://leekduck.com/raid-bosses/",
+        "LeekDuck Raid Bosses",
+        datetime.now(timezone.utc),
+        "Lista actual de jefes de incursión."
+    )
+
+
+def research_tasks():
+
+    add_item(
+        "Current Research Tasks",
+        "https://leekduck.com/research/",
+        "LeekDuck Research",
+        datetime.now(timezone.utc),
+        "Lista actual de investigaciones."
+    )
+
+
+def spotlight_raid_hours():
+
+    add_item(
+        "Spotlight & Raid Hours",
+        "https://pokemongohub.net/post/guide/spotlight-raid-hours/",
+        "GO Hub Schedule",
+        datetime.now(timezone.utc),
+        "Calendario actual de Raid Hours y Spotlight Hours."
+    )
+
+
+# =====================================================
 # RUN
 # =====================================================
 
@@ -342,6 +278,10 @@ pokemon_go_news()
 gohub_events()
 gohub_news()
 leekduck_twitter()
+
+raid_bosses()
+research_tasks()
+spotlight_raid_hours()
 
 # =====================================================
 # REMOVE DUPLICATES
