@@ -139,6 +139,13 @@ def gohub_events():
             except:
                 published = datetime.now(timezone.utc)
 
+            days_old = (
+                datetime.now(timezone.utc) - published
+            ).days
+
+            if days_old > 14:
+                continue
+
             add_item(
                 title,
                 link,
@@ -186,6 +193,13 @@ def gohub_news():
             except:
                 published = datetime.now(timezone.utc)
 
+            days_old = (
+                datetime.now(timezone.utc) - published
+            ).days
+
+            if days_old > 14:
+                continue
+
             add_item(
                 title,
                 link,
@@ -210,7 +224,7 @@ def leekduck_twitter():
             "https://rss-bridge.org/bridge01/?action=display&username=LeekDuckTwitter&bridge=TelegramBridge&format=Atom"
         )
 
-        for entry in feed.entries[:10]:
+        for entry in feed.entries[:5]:
 
             title = getattr(entry, "title", "")
             link = getattr(entry, "link", "")
@@ -307,7 +321,7 @@ items.sort(
     reverse=True
 )
 
-items = items[:50]
+items = items[:30]
 
 # =====================================================
 # GENERATE FEED
